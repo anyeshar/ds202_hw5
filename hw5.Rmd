@@ -1,0 +1,101 @@
+---
+title: "ds202_hw5"
+author: "Anyesha Ray"
+date: "April 8, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Read in Data and Libraries
+```{r cars}
+sales=readr::read_csv("Ames_Liquor_Sales.csv")
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyverse)
+library(stringr)
+```
+
+
+
+#Data Cleaning
+```{r}
+
+#extract lat/long
+sales$`Store Location`=str_replace(sales$`Store Location`, "\\)","")
+sales_clean = sales %>% separate(col=`Store Location`,into=c("point","coord"),sep="\\(") %>% separate(col=coord,into=c("Lat","Long"),sep=" ")
+sales_clean = subset(sales_clean, select = -c(point))
+
+
+
+#converting to correct type
+str(sales_clean)
+sales_clean$Lat=as.numeric(sales_clean$Lat)
+sales_clean$Long=as.numeric(sales_clean$Long)
+sales_clean$`Vendor Number` = as.numeric(sales_clean$`Vendor Number`)
+sales_clean$`Category Name` = factor(sales_clean$`Category Name`)
+sales_clean$`Store Name` = factor(sales_clean$`Store Name`)
+
+
+
+#date
+sales_clean = sales_clean %>% separate(Date, into = c('month', 'day', 'year'), sep = "/")
+sales_clean$month=as.numeric(sales_clean$month)
+sales_clean$day=as.numeric(sales_clean$day)
+sales_clean$year=as.numeric(sales_clean$year)
+
+
+```
+
+
+
+
+
+#First Overview
+
+#Question 3
+```{r}
+#plot lat and long
+sales_clean %>% ggplot(aes(y=Long,x=Lat))+geom_point()+labs(y="Latitude",x="Longitude",title="Scatterplot of Latitude and Longitude")
+
+#Break down of category
+sales_clean %>% ggplot(aes(x=`Category Name`, count=`Volume Sold (Liters)`)) + 
+  geom_bar(position=position_dodge(width = .5)) + ylab('Volume Sold') + 
+  ggtitle("Voume of Alcohol Sold By Category") + theme(axis.text.y = element_text(size=5)) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+#Question 4
+```{r}
+summary(sales_clean$`Bottles Sold`)
+summary(sales_clean$`Volume Sold (Gallons)`)
+summary(sales_clean$`Sale (Dollars)`)
+```
+
+
+
+#Question 5
+```{r}
+
+sales_clean %>% ggplot(aes(x=day, y=`Volume Sold (Gallons)`)) + geom_point() + facet_wrap(~month) + geom_smooth() + theme(axis.text.x = element_text(angle=-90)) + labs(title="Liquor(Liters) Sold by Month")
+
+```
+
+
+#Question 6
+
+```{r}
+sales_clean %>% ggplot(aes(x=day, y=`Volume Sold (Liters)`)) + geom_smooth() + facet_wrap(~month) + ggtitle("Liquor(Liters) Sold by Month")
+```
+
+
+The dates for Iowa State Football home games in Fall 2019 are 8/31/19, 9/14/19, 9/21/19, 10/5/19, 10/26/19, 11/16/19, and 11/23/19.
+There is no data for this but we can draw insights from the increase in liquor sales on those days. 
+
+
+
